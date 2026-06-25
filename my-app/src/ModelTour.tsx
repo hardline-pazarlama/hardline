@@ -1,6 +1,14 @@
 import { Component, Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
-import { OrbitControls, Html, useGLTF, Environment, Lightformer } from '@react-three/drei'
+import {
+  OrbitControls,
+  Html,
+  useGLTF,
+  Environment,
+  Lightformer,
+  ContactShadows,
+  SoftShadows,
+} from '@react-three/drei'
 import * as THREE from 'three'
 import gsap from 'gsap'
 
@@ -59,6 +67,55 @@ const TOUR_POINTS: TourPoint[] = [
 
 const DEFAULT_CAMERA: [number, number, number] = [4, 3, 6]
 
+/**
+ * Sıcak, sinematik HDRI ortam ışığı.
+ * - hdri verilirse gerçek bir .hdr/.exr dosyası yüklenir (Environment files).
+ * - verilmezse, Lightformer'lardan YEREL olarak sıcak tonlu bir HDR cubemap
+ *   üretilir (ağ gerektirmez); modele yumuşak IBL + yansıma kazandırır.
+ */
+function WarmEnvironment({ hdri }: { hdri?: string }) {
+  if (hdri) {
+    return <Environment files={hdri} environmentIntensity={1} />
+  }
+  return (
+    <Environment resolution={256} environmentIntensity={0.9}>
+      {/* Sıcak ana ışık (key) */}
+      <Lightformer
+        form="rect"
+        intensity={3}
+        color="#ffd9a0"
+        position={[4, 5, 4]}
+        scale={[7, 7, 1]}
+      />
+      {/* Amber kenar ışığı (rim) -> sinematik kontur */}
+      <Lightformer
+        form="rect"
+        intensity={2.2}
+        color="#ff8a3d"
+        position={[-5, 2, -4]}
+        scale={[6, 6, 1]}
+      />
+      {/* Yumuşak alttan dolgu */}
+      <Lightformer
+        form="circle"
+        intensity={1.1}
+        color="#fff0dd"
+        position={[0, -3, 3]}
+        scale={5}
+      />
+      {/* Üstten ince şerit ışık -> yansımalarda parlama */}
+      <Lightformer
+        form="rect"
+        intensity={1.6}
+        color="#ffe8c0"
+        position={[0, 6, 0]}
+        rotation-x={Math.PI / 2}
+        scale={[10, 2, 1]}
+      />
+    </Environment>
+  )
+}
+
 /** useGLTF ile gerçek modeli yükler. */
 function GLTFModel({ url }: { url: string }) {
   const { scene } = useGLTF(url)
@@ -95,10 +152,12 @@ class ModelBoundary extends Component<
 /** Canvas içi sahne: model, kontroller, kamera animasyonu, bilgi kartı. */
 function TourScene({
   url,
+  hdri,
   activeId,
   onActivate,
 }: {
   url: string
+  hdri?: string
   activeId: string | null
   onActivate: (id: string) => void
 }) {
@@ -152,9 +211,20 @@ function TourScene({
 
   return (
     <>
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 6, 5]} intensity={1.4} castShadow />
-      <directionalLight position={[-5, 2, -4]} intensity={0.5} color="#7aa2ff" />
+      {/* Yumuşak (PCSS) gölge kenarları -> sinematik, sert olmayan gölgeler. */}
+      <SoftShadows size={28} samples={16} focus={0.6} />
+
+      {/* Sıcak ana ışık (gölge üreten) + hafif soğuk dolgu (kontrast). */}
+      <ambientLight intensity={0.2} color="#ffe2c2" />
+      <directionalLight
+        position={[5, 7, 4]}
+        intensity={2.2}
+        color="#ffcf99"
+        castShadow
+        shadow-mapSize={[1024, 1024]}
+        shadow-bias={-0.0005}
+      />
+      <directionalLight position={[-5, 3, -4]} intensity={0.35} color="#5e74ff" />
 
       <Suspense fallback={null}>
         <ModelBoundary fallback={<PlaceholderModel />}>
@@ -176,9 +246,9 @@ function TourScene({
         >
           <sphereGeometry args={[0.09, 24, 24]} />
           <meshStandardMaterial
-            color={point.id === activeId ? '#ffffff' : '#aa3bff'}
-            emissive={point.id === activeId ? '#aa3bff' : '#3a1060'}
-            emissiveIntensity={0.6}
+            color={point.id === activeId ? '#fff4e0' : '#ff9d3d'}
+            emissive={point.id === activeId ? '#ff7a1a' : '#5a2a08'}
+            emissiveIntensity={0.7}
           />
         </mesh>
       ))}
@@ -198,11 +268,19 @@ function TourScene({
         </Html>
       )}
 
-      {/* Prosedürel ortam (offline, ağ gerektirmez) -> yansımalar. */}
-      <Environment resolution={256}>
-        <Lightformer intensity={2} position={[0, 3, 4]} scale={[6, 6, 1]} />
-        <Lightformer intensity={1.2} position={[-4, 0, -3]} scale={[4, 4, 1]} color="#7aa2ff" />
-      </Environment>
+      {/* Sıcak sinematik HDRI ortam ışığı -> yumuşak IBL + yansıma. */}
+      <WarmEnvironment hdri={hdri} />
+
+      {/* Zemine yumuşak temas gölgesi (sıcak tonlu, premium his). */}
+      <ContactShadows
+        position={[0, -0.85, 0]}
+        scale={11}
+        far={3.5}
+        blur={2.8}
+        opacity={0.7}
+        resolution={1024}
+        color="#2a1206"
+      />
 
       <OrbitControls
         ref={controlsRef}
@@ -215,18 +293,30 @@ function TourScene({
   )
 }
 
-export default function ModelTour({ url = '/model.glb' }: { url?: string }) {
+export default function ModelTour({
+  url = '/model.glb',
+  hdri,
+}: {
+  url?: string
+  /** Gerçek HDRI dosya yolu (örn. /studio.hdr). Verilmezse yerel sıcak rig kullanılır. */
+  hdri?: string
+}) {
   const [activeId, setActiveId] = useState<string | null>(null)
 
   return (
     <section className="tour-wrap">
       <Canvas
-        shadows
+        shadows="soft"
         dpr={[1, 1.75]}
-        gl={{ antialias: true, powerPreference: 'high-performance' }}
+        gl={{
+          antialias: true,
+          powerPreference: 'high-performance',
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.15, // sinematik pozlama
+        }}
         camera={{ position: DEFAULT_CAMERA, fov: 45 }}
       >
-        <TourScene url={url} activeId={activeId} onActivate={setActiveId} />
+        <TourScene url={url} hdri={hdri} activeId={activeId} onActivate={setActiveId} />
       </Canvas>
 
       {/* Tur noktası butonları (3D işaretlerle aynı noktaları tetikler). */}
