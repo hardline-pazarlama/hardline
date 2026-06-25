@@ -1,0 +1,99 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #08060d;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scroll alanı: ne kadar uzunsa animasyon o kadar uzun sürer. */
+.hero-wrap {
+  position: relative;
+  height: 320vh;
+}
+
+/* Canvas scroll boyunca ekranda sabit kalır. */
+.hero-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.hero-sticky canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  /* Sahne yalnızca scroll'la sürülür; dokunmatik scroll'u canvas yutmasın. */
+  touch-action: pan-y;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 0 1rem;
+  z-index: 1;
+}
+
+.hero-overlay h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 10vw, 7rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.6);
+}
+
+.hero-overlay p {
+  margin: 0.75rem 0 0;
+  font-size: clamp(0.9rem, 2.5vw, 1.25rem);
+  opacity: 0.8;
+}
+
+.hero-scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  animation: bob 1.8s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+.after-hero {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-hint {
+    animation: none;
+  }
+}
