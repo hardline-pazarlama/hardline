@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import DirectoryClient from "./DirectoryClient";
 
 export const metadata: Metadata = {
-  title: "Galeriler & Emlakçılar — TeslimGüven",
+  title: "Galeriler & Emlakçılar — Bulevim",
 };
 
 export default async function DirectoryPage({

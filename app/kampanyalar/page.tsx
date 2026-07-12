@@ -3,7 +3,7 @@ import { campaigns, financeCompanies } from "@/lib/data";
 import CampaignCard from "@/components/CampaignCard";
 
 export const metadata: Metadata = {
-  title: "Güncel Kampanyalar — TeslimGüven",
+  title: "Güncel Kampanyalar — Bulevim",
   description:
     "Eminevim, Katılımevim, Fuzul Ev ve Birevim'in güncel ev, araç ve işyeri kampanyalarını tek adresten takip edin.",
 };
@@ -40,7 +40,7 @@ export default function CampaignsPage() {
       })}
 
       <div className="mt-12 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-        <strong>Not:</strong> TeslimGüven bağımsız bir platformdur. Kampanya
+        <strong>Not:</strong> Bulevim bağımsız bir platformdur. Kampanya
         koşulları ilgili finansman firmasının resmî kanallarından teyit
         edilmelidir; nihai koşullar firma sözleşmelerinde yer alır.
       </div>

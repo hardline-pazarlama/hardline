@@ -51,7 +51,7 @@ export default function BusinessCard({ business }: { business: Business }) {
           </span>
         )}
         {business.certified && (
-          <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700">
+          <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700">
             🎓 Prosedür Sertifikalı
           </span>
         )}

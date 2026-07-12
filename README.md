@@ -1,4 +1,4 @@
-# TeslimGüven
+# Bulevim (bulevim.com)
 
 **Elbirliği (tasarruf finansman) sistemiyle ev, araç veya işyeri alanlar için güvenilir galeri ve emlakçı platformu.**
 
@@ -7,7 +7,7 @@ Eminevim, Katılımevim, Fuzul Ev, Birevim gibi tasarruf finansman firmalarını
 1. **Nereden alacağını bilmiyor** — bütçesine uygun, süreci bilen satıcı bulmak zor.
 2. **Kime güveneceğini bilmiyor** — ekspertiz farkı, evrak gecikmesi ve prosedür bilmeyen satıcılar mağduriyet yaratıyor.
 
-TeslimGüven bu iki sorunu çözer: finansman prosedürlerine hakim, platform tarafından doğrulanmış ve gerçek müşterilerce puanlanmış galeri/emlak ofislerini tek dizinde toplar.
+Bulevim bu iki sorunu çözer: finansman prosedürlerine hakim, platform tarafından doğrulanmış ve gerçek müşterilerce puanlanmış galeri/emlak ofislerini tek dizinde toplar.
 
 ## Özellikler (MVP)
 
@@ -38,4 +38,4 @@ Gelir modeli, büyüme stratejisi ve yol haritası için [docs/is-modeli.md](doc
 
 ## Yasal Not
 
-TeslimGüven bağımsız bir platformdur; adı geçen tasarruf finansman şirketlerinin resmî temsilcisi veya iştiraki değildir. Kampanya bilgileri ilgili firmaların kamuya açık duyurularından derlenir.
+Bulevim bağımsız bir platformdur; adı geçen tasarruf finansman şirketlerinin resmî temsilcisi veya iştiraki değildir. Kampanya bilgileri ilgili firmaların kamuya açık duyurularından derlenir.

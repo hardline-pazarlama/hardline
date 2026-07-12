@@ -20,7 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const business = getBusiness(slug);
-  return { title: business ? `${business.name} — TeslimGüven` : "İşletme" };
+  return { title: business ? `${business.name} — Bulevim` : "İşletme" };
 }
 
 const criteriaLabels: Record<string, string> = {
@@ -88,7 +88,7 @@ export default async function BusinessPage({
               </span>
             )}
             {business.certified && (
-              <span className="rounded-full bg-violet-50 px-3 py-1 text-sm font-medium text-violet-700">
+              <span className="rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700">
                 🎓 Elbirliği Prosedür Sertifikalı
               </span>
             )}

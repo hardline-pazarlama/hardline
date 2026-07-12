@@ -13,10 +13,10 @@ export default function Header() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 font-bold text-white">
-            T
+            B
           </span>
           <span className="text-lg font-bold tracking-tight text-ink-900">
-            Teslim<span className="text-brand-600">Güven</span>
+            bulevim<span className="text-brand-600">.com</span>
           </span>
         </Link>
         <nav className="hidden items-center gap-6 md:flex">

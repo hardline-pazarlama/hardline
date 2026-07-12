@@ -7,10 +7,10 @@ export default function Footer() {
         <div>
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-              T
+              B
             </span>
             <span className="font-bold text-ink-900">
-              Teslim<span className="text-brand-600">Güven</span>
+              bulevim<span className="text-brand-600">.com</span>
             </span>
           </div>
           <p className="mt-3 text-sm text-ink-600">
@@ -37,14 +37,14 @@ export default function Footer() {
         <div>
           <h3 className="text-sm font-semibold text-ink-900">Yasal Uyarı</h3>
           <p className="mt-3 text-sm text-ink-600">
-            TeslimGüven bağımsız bir platformdur; tasarruf finansman
+            Bulevim bağımsız bir platformdur; tasarruf finansman
             şirketlerinin resmî temsilcisi değildir. Kampanya bilgileri
             ilgili firmaların duyurularından derlenir.
           </p>
         </div>
       </div>
       <div className="border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-        © 2026 TeslimGüven. Tüm hakları saklıdır.
+        © 2026 bulevim.com. Tüm hakları saklıdır.
       </div>
     </footer>
   );

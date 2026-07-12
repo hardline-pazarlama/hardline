@@ -3,7 +3,7 @@ import Link from "next/link";
 import { plans } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "İşletme Üyeliği — TeslimGüven",
+  title: "İşletme Üyeliği — Bulevim",
 };
 
 const extraRevenue = [
@@ -37,7 +37,7 @@ export default function MembershipPage() {
         <p className="mx-auto mt-3 max-w-2xl text-ink-600">
           Her ay binlerce tasarruf finansman müşterisi teslimat almaya hak
           kazanıyor ve nereden alacağını arıyor. Bu hazır kitleye ulaşmanın en
-          güvenilir yolu TeslimGüven üyeliği.
+          güvenilir yolu Bulevim üyeliği.
         </p>
       </div>
 
@@ -93,7 +93,7 @@ export default function MembershipPage() {
       <section className="mt-16">
         <h2 className="text-2xl font-bold text-ink-900">Üyelik Ötesi Büyüme Kanalları</h2>
         <p className="mt-2 max-w-2xl text-ink-600">
-          TeslimGüven geliri yalnızca abonelikten ibaret değildir; platform
+          Bulevim geliri yalnızca abonelikten ibaret değildir; platform
           büyüdükçe devreye giren ek gelir kanalları:
         </p>
         <div className="mt-6 grid gap-6 md:grid-cols-2">

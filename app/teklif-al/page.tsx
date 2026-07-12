@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import LeadForm from "./LeadForm";
 
 export const metadata: Metadata = {
-  title: "Teklif Al — TeslimGüven",
+  title: "Teklif Al — Bulevim",
 };
 
 export default async function LeadPage({

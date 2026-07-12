@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Nasıl Çalışır? — TeslimGüven",
+  title: "Nasıl Çalışır? — Bulevim",
 };
 
 const customerSteps = [
@@ -52,7 +52,7 @@ export default function HowItWorksPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="text-3xl font-bold text-ink-900">Nasıl Çalışır?</h1>
       <p className="mt-2 max-w-2xl text-ink-600">
-        TeslimGüven, tasarruf finansman (elbirliği) sistemi müşterileri ile bu
+        Bulevim, tasarruf finansman (elbirliği) sistemi müşterileri ile bu
         sistemlerin prosedürlerine hakim, doğrulanmış galeri ve emlak
         ofislerini buluşturur.
       </p>
@@ -104,7 +104,7 @@ export default function HowItWorksPage() {
         <p className="mt-3 max-w-3xl text-ink-600">
           Elbirliği sisteminde teslimat, müşterinin yıllarca biriktirdiği
           tasarrufun karşılığıdır. Yanlış işletme seçimi; ekspertiz farkı,
-          evrak gecikmesi ve hak kaybı demektir. TeslimGüven'de yorumlar
+          evrak gecikmesi ve hak kaybı demektir. Bulevim'de yorumlar
           yalnızca teslimatını tamamlamış gerçek müşterilerden alınır ve dört
           kritere ayrılır: <strong>güvenilirlik, fiyat şeffaflığı, prosedür
           bilgisi ve iletişim</strong>. Böylece işletmeler yalnızca satış değil,

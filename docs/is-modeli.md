@@ -1,4 +1,4 @@
-# TeslimGüven — İş Modeli ve Büyüme Stratejisi
+# Bulevim — İş Modeli ve Büyüme Stratejisi
 
 ## 1. Sorun ve Fırsat
 
@@ -14,7 +14,7 @@ Teslimat anındaki sorunlar:
 - Finansman firmaları müşterisine satıcı öneremiyor (yönlendirme riski), müşteri
   deneyimi kötü olursa marka da zarar görüyor.
 
-TeslimGüven bu üç tarafın da kazandığı bir pazar yeri kurar:
+Bulevim bu üç tarafın da kazandığı bir pazar yeri kurar:
 **müşteri güven kazanır, işletme hazır müşteri kazanır, finansman firması
 memnun müşteri ve temiz teslimat verisi kazanır.**
 
@@ -43,7 +43,7 @@ memnun müşteri ve temiz teslimat verisi kazanır.**
 5. **Tamamlayıcı hizmet komisyonları** — Ekspertiz firmaları, nakliyat, sigorta
    (kasko/DASK/konut), tapu danışmanlığı gibi teslimat anında ihtiyaç duyulan
    hizmetlerin yönlendirme komisyonu.
-6. **TeslimGüven Güvence Paketi (ileri faz)** — Teslimat işlemine platform
+6. **Bulevim Güvence Paketi (ileri faz)** — Teslimat işlemine platform
    güvencesi (süreç takibi + anlaşmazlık hakemliği) satan işlem başına ücretli
    opsiyonel paket; pazaryerinin "escrow benzeri" güven katmanı.
 
