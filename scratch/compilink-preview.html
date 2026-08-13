@@ -1,0 +1,739 @@
+<title>Compilink Önizleme</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  /* ---- Tokens: mirror lib/theme/tokens.ts ---- */
+  :root {
+    --page-bg: #E9EBF0;
+    --page-fg: #111322;
+    --page-muted: #5C6173;
+    --chrome: #FFFFFF;
+    --chrome-border: #D9DCE6;
+
+    /* app light theme */
+    --bg: #F7F8FA;
+    --surface: #FFFFFF;
+    --surfaceAlt: #EFF1F5;
+    --textPrimary: #111322;
+    --textSecondary: #5C6173;
+    --border: #E1E4EC;
+    --success: #00B894;
+    --shadow-soft: 0 10px 30px rgba(0,0,0,0.08);
+    --shadow-subtle: 0 4px 12px rgba(0,0,0,0.05);
+
+    --accent: #6A5ACD;
+    --accentMuted: rgba(106,90,205,0.12);
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --page-bg: #060710;
+      --page-fg: #EEF1FF;
+      --page-muted: #9095B2;
+      --chrome: #12141F;
+      --chrome-border: #262B40;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg: #060710;
+    --page-fg: #EEF1FF;
+    --page-muted: #9095B2;
+    --chrome: #12141F;
+    --chrome-border: #262B40;
+  }
+
+  /* App "dark mode" is controlled inside the phone independently */
+  .phone[data-app="dark"] {
+    --bg: #0E101A;
+    --surface: #171925;
+    --surfaceAlt: #202336;
+    --textPrimary: #EEF1FF;
+    --textSecondary: #9095B2;
+    --border: #2A2F45;
+    --success: #3FD9B6;
+    --shadow-soft: 0 10px 30px rgba(0,0,0,0.4);
+    --shadow-subtle: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100%;
+    padding: 28px 16px 48px;
+    gap: 22px;
+  }
+
+  header.topbar {
+    width: 100%;
+    max-width: 920px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, #6A5ACD, #9B5DE5);
+    display: grid; place-items: center; color: #fff; font-size: 20px; font-weight: 800;
+    box-shadow: 0 6px 16px rgba(106,90,205,0.4);
+  }
+  .brand h1 { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand p { font-size: 12.5px; color: var(--page-muted); margin-top: 1px; }
+
+  .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .seg {
+    display: inline-flex; background: var(--chrome); border: 1px solid var(--chrome-border);
+    border-radius: 999px; padding: 4px; gap: 2px;
+  }
+  .seg button {
+    border: 0; background: transparent; color: var(--page-muted);
+    font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+    padding: 7px 13px; border-radius: 999px; transition: all .15s;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .swatches { display: inline-flex; gap: 6px; }
+  .swatches button {
+    width: 26px; height: 26px; border-radius: 999px; border: 2px solid transparent;
+    cursor: pointer; padding: 0; transition: transform .12s;
+  }
+  .swatches button[aria-pressed="true"] { border-color: var(--page-fg); transform: scale(1.12); }
+
+  .hint { font-size: 12.5px; color: var(--page-muted); text-align: center; max-width: 640px; line-height: 1.5; }
+  .hint b { color: var(--page-fg); font-weight: 700; }
+
+  /* ---- Phone frame ---- */
+  .stage { display: flex; justify-content: center; width: 100%; }
+  .phone {
+    width: 390px; max-width: 100%;
+    height: 800px;
+    background: var(--bg);
+    border-radius: 46px;
+    border: 11px solid #05060b;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.4) inset;
+    position: relative;
+    overflow: hidden;
+    color: var(--textPrimary);
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 150px; height: 26px; background: #05060b;
+    border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 40;
+  }
+  .screen {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0; pointer-events: none;
+    transition: opacity .25s ease;
+  }
+  .screen[data-active="true"] { opacity: 1; pointer-events: auto; }
+  .scroll {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    padding: 52px 20px 96px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .scroll::-webkit-scrollbar { width: 0; }
+
+  /* status bar */
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 44px; z-index: 30;
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 26px 6px; font-size: 13px; font-weight: 700; color: var(--textPrimary);
+    pointer-events: none;
+  }
+
+  /* generic */
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--textSecondary); }
+  .hero-title { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .between { justify-content: space-between; }
+  .modebtn {
+    width: 42px; height: 42px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); display: grid; place-items: center; font-size: 17px; cursor: pointer;
+  }
+  .section-h { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 0 12px; }
+  .section-h h3 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+  .section-h .sub { font-size: 12.5px; color: var(--textSecondary); }
+  .section-h .link { font-size: 13px; font-weight: 700; color: var(--accent); cursor: pointer; }
+
+  /* stats */
+  .stats {
+    display: flex; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 14px 0; box-shadow: var(--shadow-subtle);
+  }
+  .stats .cell { flex: 1; text-align: center; }
+  .stats .val { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .stats .lab { font-size: 12px; font-weight: 600; color: var(--textSecondary); margin-top: 2px; }
+  .stats .divider { width: 1px; background: var(--border); margin: 4px 0; }
+
+  /* category rail */
+  .rail { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+  .rail::-webkit-scrollbar { height: 0; }
+  .cat-add {
+    flex: 0 0 auto; width: 118px; height: 118px; border-radius: 16px;
+    border: 1.5px dashed var(--border); background: var(--surface);
+    padding: 14px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;
+  }
+  .cat-add .plus { width: 40px; height: 40px; border-radius: 999px; background: var(--accentMuted); color: var(--accent); display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+  .cat-add .lbl { font-size: 13px; font-weight: 700; color: var(--textSecondary); line-height: 1.2; }
+  .cat {
+    flex: 0 0 auto; width: 118px; height: 118px; border-radius: 16px;
+    padding: 14px; display: flex; flex-direction: column; justify-content: space-between;
+    cursor: pointer; box-shadow: var(--shadow-subtle); color: #fff;
+  }
+  .cat .top { display: flex; align-items: flex-start; justify-content: space-between; }
+  .cat .emoji { font-size: 26px; }
+  .cat .badge { min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px; background: rgba(255,255,255,.28); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+  .cat .name { font-size: 14px; font-weight: 800; line-height: 1.15; }
+
+  /* item card */
+  .card {
+    background: var(--surface); border-radius: 12px; border-left: 4px solid var(--accent);
+    box-shadow: var(--shadow-subtle); padding: 14px; display: flex; flex-direction: column; gap: 8px;
+    cursor: pointer;
+  }
+  .card + .card { margin-top: 14px; }
+  .pbadge { display: inline-flex; align-items: center; gap: 4px; background: var(--surfaceAlt); border-radius: 8px; padding: 4px 8px; font-size: 11px; font-weight: 700; color: var(--textSecondary); }
+  .status { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--textSecondary); }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--border); }
+  .dot.done { background: var(--success); }
+  .dot.prog { background: var(--accent); }
+  .card .title { font-size: 16px; font-weight: 800; line-height: 1.3; }
+  .tag { display: inline-flex; align-self: flex-start; background: var(--accentMuted); color: var(--accent); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px; }
+  .note { font-size: 13px; color: var(--textSecondary); line-height: 1.45; }
+  .cardactions { display: flex; gap: 18px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .cardactions span { font-size: 13px; font-weight: 700; color: var(--textSecondary); }
+  .cardactions span.on { color: var(--accent); }
+  .focustoggle { display: flex; align-items: center; gap: 8px; }
+  .checkbox { width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--accent); display: grid; place-items: center; }
+  .checkbox.on { background: var(--accent); color: #fff; font-size: 11px; font-weight: 900; }
+  .focustoggle .t { font-size: 12px; font-weight: 700; color: var(--textSecondary); }
+
+  /* focus card */
+  .focus { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .focus + .focus { margin-top: 8px; }
+  .focus .cb { width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--accent); display: grid; place-items: center; flex: 0 0 auto; }
+  .focus .cb.on { background: var(--accent); color: #fff; font-weight: 900; }
+  .focus .t { font-size: 15px; font-weight: 700; }
+  .focus .m { font-size: 12px; color: var(--textSecondary); margin-top: 2px; }
+  .empty-hint { padding: 16px; border: 1px dashed var(--border); border-radius: 12px; background: var(--surface); font-size: 13.5px; color: var(--textSecondary); line-height: 1.5; }
+
+  /* fab */
+  .fab {
+    position: absolute; right: 20px; bottom: 90px; width: 60px; height: 60px; border-radius: 999px;
+    background: var(--accent); color: #fff; font-size: 30px; font-weight: 700; border: 0; cursor: pointer;
+    box-shadow: var(--shadow-soft); z-index: 25; display: grid; place-items: center;
+  }
+  .fab:active { transform: scale(.95); }
+
+  /* tab bar */
+  .tabbar {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 66px; z-index: 30;
+    background: var(--surface); border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 10px;
+  }
+  .tabbar button { flex: 1; background: 0; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--textSecondary); font: inherit; }
+  .tabbar button .ic { font-size: 20px; }
+  .tabbar button .lb { font-size: 11px; font-weight: 700; }
+  .tabbar button.on { color: var(--accent); }
+
+  /* category detail hero */
+  .cd-back { font-size: 15px; font-weight: 800; color: var(--accent); cursor: pointer; }
+  .cd-icon { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; font-size: 32px; margin: 12px 0; }
+  .cd-title { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; }
+  .cd-desc { font-size: 14.5px; color: var(--textSecondary); margin-top: 6px; line-height: 1.45; }
+  .track { height: 8px; border-radius: 4px; background: var(--surfaceAlt); overflow: hidden; margin-top: 16px; }
+  .fill { height: 8px; border-radius: 4px; }
+  .track-lbl { font-size: 13px; font-weight: 700; color: var(--textSecondary); margin-top: 8px; }
+  .filters { display: flex; gap: 8px; overflow-x: auto; margin: 18px -20px 0; padding: 0 20px 4px; }
+  .filters::-webkit-scrollbar { height: 0; }
+  .chip { flex: 0 0 auto; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); font-size: 13px; font-weight: 700; color: var(--textSecondary); cursor: pointer; }
+  .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  /* sheet screens (add / detail) built as full screens for preview */
+  .sheet-wrap { position: absolute; inset: 0; z-index: 45; display: none; }
+  .sheet-wrap[data-open="true"] { display: block; }
+  .sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; max-height: 92%;
+    background: var(--surface); border-top-left-radius: 26px; border-top-right-radius: 26px;
+    box-shadow: var(--shadow-soft); padding: 12px 20px 26px; overflow-y: auto;
+    animation: rise .28s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes rise { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .handle { width: 44px; height: 5px; border-radius: 999px; background: var(--border); margin: 4px auto 14px; }
+  .sheet h2 { font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 700; color: var(--textSecondary); margin-bottom: 6px; }
+  .input { width: 100%; background: var(--surfaceAlt); border: 0; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; color: var(--textPrimary); }
+  .input.tall { min-height: 64px; }
+  .chips2 { display: flex; flex-wrap: wrap; gap: 8px; }
+  .c2 { padding: 8px 12px; border-radius: 999px; background: var(--surfaceAlt); font-size: 13px; font-weight: 700; color: var(--textSecondary); cursor: pointer; }
+  .c2.on { background: var(--accent); color: #fff; }
+  .c2.dashed { border: 1.5px dashed var(--border); background: transparent; color: var(--accent); }
+  .btn { height: 48px; border-radius: 999px; border: 0; width: 100%; font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; display: grid; place-items: center; }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.secondary { background: var(--surfaceAlt); color: var(--textPrimary); }
+  .btn + .btn { margin-top: 8px; }
+  .urlrow { display: flex; gap: 8px; }
+  .urlrow .input { flex: 1; }
+  .urlrow .btn { width: auto; padding: 0 18px; }
+  .closebar { text-align: center; margin-top: 8px; }
+  .closebar button { background: 0; border: 0; color: var(--textSecondary); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  /* item detail specifics */
+  .id-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .id-date { font-size: 12px; font-weight: 600; color: var(--textSecondary); margin-left: auto; }
+  .id-title { font-size: 22px; font-weight: 800; line-height: 1.25; }
+  .id-url { font-size: 14px; font-weight: 700; color: var(--accent); margin: 10px 0; word-break: break-all; }
+  .id-sec-title { font-size: 15px; font-weight: 800; margin: 14px 0 8px; }
+  .id-body { font-size: 15px; color: var(--textSecondary); line-height: 1.5; }
+  .bullet { display: flex; gap: 8px; margin-top: 6px; }
+  .bullet .d { color: var(--accent); font-size: 16px; }
+  .preview-box { background: var(--surfaceAlt); border: 1px solid var(--border); border-radius: 16px; padding: 16px; font-size: 14px; line-height: 1.5; color: var(--textPrimary); white-space: pre-wrap; }
+  .twobtn { display: flex; gap: 12px; margin-top: 12px; }
+  .twobtn .btn { flex: 1; }
+
+  /* toast */
+  .toast {
+    position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%) translateY(12px);
+    background: var(--textPrimary); color: var(--bg); padding: 11px 18px; border-radius: 999px;
+    font-size: 13.5px; font-weight: 700; z-index: 60; opacity: 0; pointer-events: none; transition: all .2s; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 460px) {
+    .phone { height: 720px; border-width: 8px; }
+  }
+</style>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark">C</div>
+    <div>
+      <h1>Compilink — Canlı Önizleme</h1>
+      <p>Gerçek tasarım token'larıyla tıklanabilir demo</p>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="seg" id="pageTheme" role="group" aria-label="Sayfa teması">
+      <button data-pt="light" aria-pressed="false">☀︎ Light</button>
+      <button data-pt="dark" aria-pressed="false">☾ Dark</button>
+    </div>
+    <div class="swatches" id="accentPicker" role="group" aria-label="Accent rengi">
+      <button data-accent="#6A5ACD" style="background:#6A5ACD" aria-pressed="true" title="Iris"></button>
+      <button data-accent="#FFB347" style="background:#FFB347" aria-pressed="false" title="Amber"></button>
+      <button data-accent="#2F95DC" style="background:#2F95DC" aria-pressed="false" title="Azure"></button>
+      <button data-accent="#00B894" style="background:#00B894" aria-pressed="false" title="Emerald"></button>
+      <button data-accent="#E5547C" style="background:#E5547C" aria-pressed="false" title="Rose"></button>
+      <button data-accent="#9B5DE5" style="background:#9B5DE5" aria-pressed="false" title="Violet"></button>
+    </div>
+  </div>
+</header>
+
+<p class="hint">Telefonun içindeki <b>🌙 / ☀️</b> düğmesi uygulamanın kendi dark-mode'unu değiştirir · alttaki <b>sekmeler</b> ile ekranlar arası gez · <b>+</b> ve kartlar sheet açar · yukarıdaki renk noktaları <b>accent</b>'i değiştirir.</p>
+
+<div class="stage">
+  <div class="phone" id="phone" data-app="dark">
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><span>● ● ● &nbsp;⌁&nbsp;100%</span></div>
+
+    <!-- ============ HOME ============ -->
+    <section class="screen" data-screen="home" data-active="true">
+      <div class="scroll">
+        <div class="row between">
+          <div>
+            <div class="kicker">Workspace</div>
+            <div class="hero-title">Hilmi'nin Compilink'i</div>
+          </div>
+          <button class="modebtn" id="appMode" title="Dark mode">🌙</button>
+        </div>
+
+        <div class="stats" style="margin-top:16px">
+          <div class="cell"><div class="val">24</div><div class="lab">Toplam</div></div>
+          <div class="divider"></div>
+          <div class="cell"><div class="val">3</div><div class="lab">Bugün</div></div>
+          <div class="divider"></div>
+          <div class="cell"><div class="val">16</div><div class="lab">Okunacak</div></div>
+        </div>
+
+        <div class="section-h"><h3>Kategoriler</h3><span class="link" data-go="categories">Tümü</span></div>
+        <div class="rail" id="railHome"></div>
+
+        <div class="section-h"><div><h3>Focus Board</h3></div><span class="sub">2/3 bugünkü hedef</span></div>
+        <div id="focusList"></div>
+
+        <div class="section-h"><h3>Son eklenenler</h3></div>
+        <div id="recentList"></div>
+      </div>
+      <button class="fab" data-sheet="add">＋</button>
+      <nav class="tabbar" data-tabs></nav>
+    </section>
+
+    <!-- ============ CATEGORIES ============ -->
+    <section class="screen" data-screen="categories">
+      <div class="scroll">
+        <div class="row between">
+          <div class="hero-title">Kategoriler</div>
+          <button class="modebtn" data-sheet="addcat" style="background:var(--accent);color:#fff;border:0">＋</button>
+        </div>
+        <div id="catList" style="margin-top:16px"></div>
+      </div>
+      <nav class="tabbar" data-tabs></nav>
+    </section>
+
+    <!-- ============ CATEGORY DETAIL ============ -->
+    <section class="screen" data-screen="detail">
+      <div class="scroll">
+        <div class="cd-back" data-go="categories">‹ Geri</div>
+        <div class="cd-icon" id="cdIcon">🧠</div>
+        <div class="cd-title" id="cdTitle">Insight Hub</div>
+        <div class="cd-desc" id="cdDesc">Pazar ve davranış içgörüleri, raporlar.</div>
+        <div class="track"><div class="fill" id="cdFill" style="width:33%"></div></div>
+        <div class="track-lbl" id="cdTrackLbl">1/3 okunmuş • 3 içerik</div>
+        <div class="filters" id="cdFilters">
+          <button class="chip on">Hepsi</button>
+          <button class="chip">Favori</button>
+          <button class="chip">Okunmamış</button>
+          <button class="chip">Okundu</button>
+        </div>
+        <div id="detailList" style="margin-top:18px"></div>
+      </div>
+      <button class="fab" data-sheet="add">＋</button>
+      <nav class="tabbar" data-tabs></nav>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="screen" data-screen="settings">
+      <div class="scroll">
+        <div class="hero-title">Ayarlar</div>
+
+        <div style="margin-top:20px">
+          <div class="kicker">Tema</div>
+          <div class="seg" style="margin-top:8px;width:100%;display:flex" id="setTheme">
+            <button style="flex:1" data-app-theme="light">Açık</button>
+            <button style="flex:1" data-app-theme="dark" aria-pressed="true">Koyu</button>
+            <button style="flex:1" data-app-theme="system">Sistem</button>
+          </div>
+        </div>
+
+        <div style="margin-top:22px">
+          <div class="kicker">Accent rengi</div>
+          <div class="swatches" style="margin-top:10px;gap:12px" id="setAccent">
+            <button data-accent="#6A5ACD" style="background:#6A5ACD;width:44px;height:44px" aria-pressed="true"></button>
+            <button data-accent="#FFB347" style="background:#FFB347;width:44px;height:44px"></button>
+            <button data-accent="#2F95DC" style="background:#2F95DC;width:44px;height:44px"></button>
+            <button data-accent="#00B894" style="background:#00B894;width:44px;height:44px"></button>
+            <button data-accent="#E5547C" style="background:#E5547C;width:44px;height:44px"></button>
+            <button data-accent="#9B5DE5" style="background:#9B5DE5;width:44px;height:44px"></button>
+          </div>
+        </div>
+
+        <div style="margin-top:22px">
+          <div class="kicker">Varsayılan sıralama</div>
+          <div class="seg" style="margin-top:8px;width:100%;display:flex" id="setSort">
+            <button style="flex:1" aria-pressed="true">Son eklenen</button>
+            <button style="flex:1">En çok okunan</button>
+          </div>
+        </div>
+
+        <div style="margin-top:22px">
+          <div class="kicker">Veri</div>
+          <div class="card" style="border-left:0;margin-top:10px;cursor:default"><div class="row"><span style="font-size:20px">⬆️</span><div><div class="title" style="font-size:15px">Dışa aktar (JSON)</div><div class="note">Tüm kategori ve linkleri panoya kopyala</div></div></div></div>
+          <div class="card" style="border-left:0;cursor:default"><div class="row"><span style="font-size:20px">⬇️</span><div><div class="title" style="font-size:15px">İçe aktar</div><div class="note">JSON'dan geri yükle (yer tutucu)</div></div></div></div>
+        </div>
+
+        <div style="margin-top:22px">
+          <div class="kicker">Hesap</div>
+          <div class="card" style="border-left:0;margin-top:10px;cursor:default"><div class="row"><span style="font-size:20px">👤</span><div><div class="title" style="font-size:15px">Hilmi</div><div class="note">Rol: marketing</div></div></div></div>
+        </div>
+      </div>
+      <nav class="tabbar" data-tabs></nav>
+    </section>
+
+    <!-- ============ SHEETS ============ -->
+    <div class="sheet-wrap" id="sheet-add">
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet">
+        <div class="handle"></div>
+        <h2>Yeni link ekle</h2>
+        <div class="field"><label>URL</label>
+          <div class="urlrow"><input class="input" value="https://linear.app/blog/how-linear-feels-fast" readonly><button class="btn secondary" id="captureBtn">Yakala</button></div>
+        </div>
+        <div class="field"><label>Başlık</label><input class="input" id="capTitle" value="How Linear Feels Fast" readonly></div>
+        <div class="field"><label>Not / Özet</label><textarea class="input tall" readonly>Optimistic UI + klavye öncelikli akış.</textarea></div>
+        <div class="field"><label>Kategori</label>
+          <div class="chips2">
+            <span class="c2">🧠 Insight Hub</span>
+            <span class="c2 on">🔧 Product Teardowns</span>
+            <span class="c2">🤖 AI &amp; Tooling</span>
+            <span class="c2 dashed">＋ Yeni kategori</span>
+          </div>
+        </div>
+        <div class="field"><label>Platform</label>
+          <div class="chips2">
+            <span class="c2 on">🌐 Blog</span>
+            <span class="c2">▶️ YouTube</span>
+            <span class="c2">💼 LinkedIn</span>
+            <span class="c2">📄 PDF</span>
+          </div>
+        </div>
+        <button class="btn primary" data-save>✓ Kaydet</button>
+        <button class="btn secondary" data-save>↗ Kaydet ve paylaş</button>
+        <div class="closebar"><button data-close>Kapat</button></div>
+      </div>
+    </div>
+
+    <div class="sheet-wrap" id="sheet-addcat">
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet">
+        <div class="handle"></div>
+        <h2>Yeni kategori</h2>
+        <div class="field"><label>İsim</label><input class="input" placeholder="Örn. Growth Benchmarks"></div>
+        <div class="field"><label>Emoji</label>
+          <div class="chips2" id="emojiPick">
+            <span class="c2 on" style="font-size:20px">🧠</span><span class="c2" style="font-size:20px">📈</span><span class="c2" style="font-size:20px">🎯</span><span class="c2" style="font-size:20px">🔧</span><span class="c2" style="font-size:20px">🤖</span><span class="c2" style="font-size:20px">✨</span><span class="c2" style="font-size:20px">📊</span><span class="c2" style="font-size:20px">📚</span>
+          </div>
+        </div>
+        <div class="field"><label>Renk</label>
+          <div class="swatches" id="catColor">
+            <button data-accent="#6A5ACD" style="background:#6A5ACD;width:36px;height:36px" aria-pressed="true"></button>
+            <button data-accent="#FFB347" style="background:#FFB347;width:36px;height:36px"></button>
+            <button data-accent="#2F95DC" style="background:#2F95DC;width:36px;height:36px"></button>
+            <button data-accent="#00B894" style="background:#00B894;width:36px;height:36px"></button>
+            <button data-accent="#E5547C" style="background:#E5547C;width:36px;height:36px"></button>
+            <button data-accent="#9B5DE5" style="background:#9B5DE5;width:36px;height:36px"></button>
+          </div>
+        </div>
+        <button class="btn primary" data-save>＋ Kategoriyi kaydet</button>
+        <div class="closebar"><button data-close>Kapat</button></div>
+      </div>
+    </div>
+
+    <div class="sheet-wrap" id="sheet-detail">
+      <div class="sheet-backdrop" data-close></div>
+      <div class="sheet">
+        <div class="handle"></div>
+        <div class="id-meta">
+          <span class="pbadge">🌐 Blog</span>
+          <span class="tag" id="idTag">🔧 Product Teardowns</span>
+          <span class="id-date">4 Ağustos 2026</span>
+        </div>
+        <div class="id-title" id="idTitle">Linear nasıl bu kadar hızlı hissettiriyor</div>
+        <div class="id-url">🔗 https://example.com/linear-ux</div>
+        <div class="id-sec-title">Not</div>
+        <div class="id-body">Optimistic UI + keyboard-first.</div>
+        <div class="id-sec-title">Özet</div>
+        <div class="bullet"><span class="d">•</span><div class="id-body">Optimistic updates</div></div>
+        <div class="bullet"><span class="d">•</span><div class="id-body">Klavye öncelikli</div></div>
+        <div class="bullet"><span class="d">•</span><div class="id-body">Az ama net animasyon</div></div>
+        <div class="twobtn"><button class="btn primary">↗ Linki aç</button><button class="btn secondary" style="flex:0 0 56px">★</button></div>
+        <div class="id-sec-title">Paylaş</div>
+        <div class="preview-box" id="shareBox"></div>
+        <div class="twobtn"><button class="btn secondary" data-copy>⧉ Kopyala</button><button class="btn primary">↗ Paylaş</button></div>
+        <div class="closebar"><button data-close>Kapat</button></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">Link eklendi</div>
+  </div>
+</div>
+
+<p class="hint">Bu, uygulamanın <b>görsel önizlemesidir</b> — gerçek Expo uygulamasıyla birebir aynı renk, layout ve akışları kullanır. Tam çalışan (veri kaydeden) sürüm için <b>npm install &amp; npm start</b> gerekir.</p>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var phone = document.getElementById('phone');
+
+  /* ----- data (mirror lib/mockData.ts) ----- */
+  var categories = [
+    { id:'insight', name:'Insight Hub', emoji:'🧠', color:'#6A5ACD', desc:'Pazar ve davranış içgörüleri, raporlar.', count:3, read:1 },
+    { id:'growth', name:'Growth Benchmarks', emoji:'📈', color:'#FFB347', desc:'Funnel, retention ve acquisition kıyaslamaları.', count:3, read:1 },
+    { id:'campaign', name:'Campaign Ideas', emoji:'🎯', color:'#2F95DC', desc:'Kampanya ve creative ilham kaynakları.', count:3, read:0 },
+    { id:'product', name:'Product Teardowns', emoji:'🔧', color:'#00B894', desc:'Ürün analizleri ve UX teardown yazıları.', count:3, read:1 },
+    { id:'ai', name:'AI & Tooling', emoji:'🤖', color:'#E5547C', desc:'Yapay zeka araçları, prompt ve otomasyon.', count:3, read:0 },
+    { id:'brand', name:'Brand & Story', emoji:'✨', color:'#9B5DE5', desc:'Marka konumlandırma ve hikaye anlatımı.', count:3, read:1 },
+    { id:'data', name:'Data & Research', emoji:'📊', color:'#F25F5C', desc:'Veri kaynakları, akademik makaleler.', count:3, read:0 },
+    { id:'reads', name:'Weekend Reads', emoji:'📚', color:'#2EC4B6', desc:'Uzun soluklu, derinlemesine okumalar.', count:3, read:1 }
+  ];
+  var platforms = { web:'🌐 Blog', youtube:'▶️ YouTube', linkedin:'💼 LinkedIn', x:'𝕏 X', pdf:'📄 PDF' };
+  var recent = [
+    { t:'SaaS Retention Benchmark 2026', cat:'growth', p:'web', st:'prog', note:'D30 medyanı %38; bizimkini kıyasla.', fav:true },
+    { t:'Prompt engineering for marketers', cat:'ai', p:'web', st:'prog', note:'Brief → prompt şablonları bölümü.', fav:true },
+    { t:'The Tyranny of Metrics', cat:'reads', p:'web', st:'new', note:'Hafta sonu için ayrıldı.', fav:false },
+    { t:'Açık veri kaynakları listesi', cat:'data', p:'web', st:'new', note:'Türkiye pazarı için TÜİK + Statista.', fav:false }
+  ];
+  var focus = [
+    { t:'SaaS Retention Benchmark 2026', p:'web', done:false },
+    { t:'Linear nasıl bu kadar hızlı hissettiriyor', p:'web', done:true }
+  ];
+  var detailItems = [
+    { t:'Linear nasıl bu kadar hızlı hissettiriyor', p:'web', st:'prog', note:'Optimistic UI + keyboard-first.', fav:true },
+    { t:'Onboarding teardown: Duolingo', p:'youtube', st:'new', note:'', fav:false },
+    { t:'Empty state tasarım kalıpları', p:'web', st:'done', note:'', fav:false }
+  ];
+
+  function catById(id){ for (var i=0;i<categories.length;i++) if (categories[i].id===id) return categories[i]; return categories[0]; }
+  function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+  /* ----- render helpers ----- */
+  function itemCard(it){
+    var c = catById(it.cat || 'product');
+    var stLabel = it.st==='done'?'Okundu':it.st==='prog'?'Okunuyor':'Okunmadı';
+    return '<div class="card" data-sheet="detail" style="border-left-color:'+c.color+'">'
+      + '<div class="row between">'
+        + '<span class="pbadge">'+platforms[it.p]+'</span>'
+        + '<span class="status"><span class="dot '+(it.st==='done'?'done':it.st==='prog'?'prog':'')+'"></span>'+stLabel+'</span>'
+      + '</div>'
+      + '<div class="title">'+esc(it.t)+'</div>'
+      + '<span class="tag">'+c.emoji+' '+c.name+'</span>'
+      + (it.note?'<div class="note">'+esc(it.note)+'</div>':'')
+      + '<div class="cardactions"><span class="'+(it.st==='done'?'on':'')+'">'+(it.st==='done'?'✓ Okundu':'Oku')+'</span><span class="'+(it.fav?'on':'')+'">'+(it.fav?'★ Favori':'☆ Favori')+'</span><span>Paylaş</span></div>'
+      + '<div class="focustoggle"><span class="checkbox">'+'</span><span class="t">Öncelikli Oku</span></div>'
+      + '</div>';
+  }
+
+  function renderRail(){
+    var add = '<div class="cat-add" data-sheet="addcat"><div class="plus">＋</div><div class="lbl">Yeni<br>kategori</div></div>';
+    var cards = categories.map(function(c){
+      return '<div class="cat" data-detail="'+c.id+'" style="background:linear-gradient(135deg,'+c.color+'e6,'+c.color+'8c)">'
+        + '<div class="top"><span class="emoji">'+c.emoji+'</span><span class="badge">'+c.count+'</span></div>'
+        + '<div class="name">'+c.name+'</div></div>';
+    }).join('');
+    document.getElementById('railHome').innerHTML = add + cards;
+  }
+  function renderFocus(){
+    document.getElementById('focusList').innerHTML = focus.map(function(f){
+      return '<div class="focus"><span class="cb '+(f.done?'on':'')+'">'+(f.done?'✓':'')+'</span>'
+        + '<div style="flex:1"><div class="t" style="'+(f.done?'text-decoration:line-through;opacity:.6':'')+'">'+esc(f.t)+'</div>'
+        + '<div class="m">'+(f.done?'Tamamlandı':'Bugün oku')+'</div></div></div>';
+    }).join('');
+  }
+  function renderRecent(){ document.getElementById('recentList').innerHTML = recent.map(itemCard).join(''); }
+  function renderCatList(){
+    document.getElementById('catList').innerHTML = categories.map(function(c){
+      var prog = c.count? Math.round(c.read/c.count*100):0;
+      return '<div class="card" data-detail="'+c.id+'" style="border-left-color:'+c.color+';gap:12px">'
+        + '<div class="row" style="gap:12px"><div style="width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:'+c.color+'22">'+c.emoji+'</div>'
+        + '<div style="flex:1"><div class="title" style="font-size:17px">'+c.name+'</div><div class="note">'+c.desc+'</div></div>'
+        + '<div class="badge" style="background:var(--surfaceAlt);color:var(--textPrimary);min-width:32px;height:28px;border-radius:14px;display:grid;place-items:center;font-weight:800">'+c.count+'</div></div>'
+        + '<div class="track" style="margin-top:0"><div class="fill" style="width:'+prog+'%;background:'+c.color+'"></div></div>'
+        + '<div class="track-lbl">'+c.read+'/'+c.count+' okundu</div></div>';
+    }).join('');
+  }
+  function renderDetail(id){
+    var c = catById(id);
+    document.getElementById('cdIcon').textContent = c.emoji;
+    document.getElementById('cdIcon').style.background = c.color+'22';
+    document.getElementById('cdTitle').textContent = c.name;
+    document.getElementById('cdDesc').textContent = c.desc;
+    document.getElementById('cdFill').style.width = (c.count?Math.round(c.read/c.count*100):0)+'%';
+    document.getElementById('cdFill').style.background = c.color;
+    document.getElementById('cdTrackLbl').textContent = c.read+'/'+c.count+' okunmuş • '+c.count+' içerik';
+    var list = (id==='product')? detailItems : detailItems.map(function(x,i){ return {t:x.t, p:x.p, st:x.st, note:x.note, fav:x.fav}; });
+    document.getElementById('detailList').innerHTML = list.map(function(it){ return itemCard({t:it.t,cat:id,p:it.p,st:it.st,note:it.note,fav:it.fav}); }).join('');
+  }
+
+  /* ----- tab bar ----- */
+  var TABS = [ {s:'home',ic:'🏠',lb:'Akış'}, {s:'categories',ic:'🗂️',lb:'Kategoriler'}, {s:'settings',ic:'⚙️',lb:'Ayarlar'} ];
+  function buildTabs(){
+    document.querySelectorAll('[data-tabs]').forEach(function(nav){
+      var cur = nav.closest('.screen').getAttribute('data-screen');
+      var curTab = (cur==='detail')?'categories':cur;
+      nav.innerHTML = TABS.map(function(t){
+        return '<button class="'+(t.s===curTab?'on':'')+'" data-go="'+t.s+'"><span class="ic">'+t.ic+'</span><span class="lb">'+t.lb+'</span></button>';
+      }).join('');
+    });
+  }
+  function show(screen){
+    document.querySelectorAll('.screen').forEach(function(s){ s.setAttribute('data-active', s.getAttribute('data-screen')===screen ? 'true':'false'); });
+    document.querySelector('.phone').querySelectorAll('.scroll').forEach(function(sc){ sc.scrollTop=0; });
+  }
+
+  /* ----- accent ----- */
+  function setAccent(hex){
+    // hex -> rgba muted
+    var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    root.style.setProperty('--accent', hex);
+    root.style.setProperty('--accentMuted', 'rgba('+r+','+g+','+b+',0.16)');
+    // dark accent tweak handled by same var for simplicity
+    document.querySelectorAll('#accentPicker button, #setAccent button').forEach(function(btn){
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-accent')===hex ? 'true':'false');
+    });
+  }
+
+  /* ----- app dark mode ----- */
+  function setAppTheme(mode){
+    var dark = mode==='dark' || (mode==='system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    phone.setAttribute('data-app', dark?'dark':'light');
+    document.getElementById('appMode').textContent = dark?'☀️':'🌙';
+    document.querySelectorAll('#setTheme button').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-app-theme')===mode?'true':'false'); });
+  }
+
+  /* ----- share snippet (mirror generateShareCopy) ----- */
+  function buildShare(){
+    document.getElementById('shareBox').textContent =
+      '🔧 Linear nasıl bu kadar hızlı hissettiriyor\n'
+      + '🔗 https://example.com/linear-ux\n'
+      + '✍️ • Optimistic updates\n• Klavye öncelikli\n• Az ama net animasyon\n\n'
+      + "Bunu Hilmi'in Compilink'inden ekledim.";
+  }
+
+  /* ----- toast ----- */
+  var toastEl = document.getElementById('toast'), toastTimer;
+  function toast(msg){ toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(function(){toastEl.classList.remove('show');},1900); }
+
+  /* ----- sheets ----- */
+  function openSheet(id){ document.getElementById('sheet-'+id).setAttribute('data-open','true'); }
+  function closeSheets(){ document.querySelectorAll('.sheet-wrap').forEach(function(s){ s.setAttribute('data-open','false'); }); }
+
+  /* ----- events (delegate) ----- */
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-go],[data-detail],[data-sheet],[data-close],[data-save],[data-copy],[data-pt],[data-accent],[data-app-theme]');
+    if (!t) return;
+
+    if (t.hasAttribute('data-pt')) {
+      var pt = t.getAttribute('data-pt');
+      root.setAttribute('data-theme', pt);
+      document.querySelectorAll('#pageTheme button').forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-pt')===pt?'true':'false'); });
+      return;
+    }
+    if (t.hasAttribute('data-app-theme')) { setAppTheme(t.getAttribute('data-app-theme')); return; }
+    if (t.hasAttribute('data-accent')) { setAccent(t.getAttribute('data-accent')); return; }
+    if (t.id==='appMode') { setAppTheme(phone.getAttribute('data-app')==='dark'?'light':'dark'); return; }
+
+    if (t.hasAttribute('data-detail')) { renderDetail(t.getAttribute('data-detail')); buildTabs(); show('detail'); return; }
+    if (t.hasAttribute('data-go')) { buildTabs(); show(t.getAttribute('data-go')); return; }
+    if (t.hasAttribute('data-sheet')) { if(t.getAttribute('data-sheet')==='detail') buildShare(); openSheet(t.getAttribute('data-sheet')); return; }
+    if (t.hasAttribute('data-close')) { closeSheets(); return; }
+    if (t.hasAttribute('data-save')) { closeSheets(); toast('Link eklendi'); return; }
+    if (t.hasAttribute('data-copy')) { toast('Paylaşım metni kopyalandı'); return; }
+  });
+
+  // appMode button isn't covered by the selector above (no data-*), handle separately
+  document.getElementById('appMode').addEventListener('click', function(){
+    setAppTheme(phone.getAttribute('data-app')==='dark'?'light':'dark');
+  });
+
+  // emoji / sort / filter simple toggles
+  document.addEventListener('click', function(e){
+    var g = e.target.closest('#emojiPick .c2, #setSort button, #cdFilters .chip, #catColor button');
+    if (!g) return;
+    var parent = g.parentElement;
+    if (parent.id==='catColor') { parent.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed','false');}); g.setAttribute('aria-pressed','true'); return; }
+    parent.querySelectorAll(parent.id==='cdFilters'?'.chip':'.c2,button').forEach(function(b){ b.classList.remove('on'); b.setAttribute('aria-pressed','false'); });
+    g.classList.add('on'); g.setAttribute('aria-pressed','true');
+  });
+
+  /* ----- init ----- */
+  renderRail(); renderFocus(); renderRecent(); renderCatList(); buildTabs(); buildShare();
+  setAccent('#6A5ACD'); setAppTheme('dark');
+})();
+</script>
